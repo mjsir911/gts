@@ -17,6 +17,18 @@ pub fn set_insert_test() {
   |> should.equal(Ok("world"))
 }
 
+pub fn set_multiset_test() {
+  let _ = builder.new("test_name3")
+  |> builder.set()
+  |> set.insert("hello", "world")
+
+
+  let _ = builder.new("test_name3")
+  |> builder.set()
+  |> set.lookup("hello")
+  |> should.equal(Ok("world"))
+}
+
 pub fn ordered_set_test() {
   let myset = builder.new("test_name2")
   |> builder.ordered_set()

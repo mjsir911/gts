@@ -33,6 +33,9 @@ pub fn lookup(table: atom.Atom, key: dynamic.Dynamic) -> List(#(dynamic.Dynamic,
 @external(erlang, "ets", "give_away")
 pub fn give_away(table: atom.Atom, pid: process.Pid, gift_data: dynamic.Dynamic) -> Nil
 
+@external(erlang, "ets", "whereis")
+pub fn whereis(name: atom.Atom) -> dynamic.Dynamic
+
 
 @external(erlang, "gleam_stdlib", "identity")
 pub fn cast(a: anything) -> dynamic.Dynamic

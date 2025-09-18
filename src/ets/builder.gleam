@@ -1,5 +1,6 @@
 import gleam/erlang/atom
 import gleam/dynamic
+import gleam/dynamic/decode
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import ets/internal/table_type/set as set_i
@@ -91,6 +92,16 @@ pub fn write_concurrency_prop(
   |> cast
 }
 
+
+fn table_exists(builder: TableBuilder(k, v)) -> Bool {
+  let tablename = atom.create(builder.name)
+  let ret = ets_bindings.whereis(tablename)
+  case decode.run(ret, decode.optional(decode.dynamic)) {
+    Error(_) -> False // uhhhh
+    Ok(retval) -> option.is_some(retval)
+  }
+}
+
 pub fn build_table(builder: TableBuilder(k, v), table_type: String) -> atom.Atom {
   let name = atom.create(builder.name)
 
@@ -138,11 +149,17 @@ pub fn build_table(builder: TableBuilder(k, v), table_type: String) -> atom.Atom
 }
 
 pub fn set(builder: TableBuilder(k, v)) -> set.Set(k, v) {
-  let table = build_table(builder, "set")
+  let table = case table_exists(builder) {
+    False -> build_table(builder, "set")
+    True -> atom.create(builder.name)
+  }
   set_i.Set(table.new(table))
 }
 
 pub fn ordered_set(builder: TableBuilder(k, v)) -> ordered_set.OrderedSet(k, v) {
-  let table = build_table(builder, "ordered_set")
+  let table = case table_exists(builder) {
+    False -> build_table(builder, "ordered_set")
+    True -> atom.create(builder.name)
+  }
   ordered_set_i.OrderedSet(table.new(table))
 }
