@@ -9,7 +9,7 @@ pub fn main() {
 }
 
 // gleeunit test functions end in `_test`
-pub fn test_set_insert() {
+pub fn set_insert_test() {
   builder.new("test_name")
   |> builder.set()
   |> set.insert("hello", "world")
@@ -17,11 +17,13 @@ pub fn test_set_insert() {
   |> should.equal(Ok("world"))
 }
 
-pub fn test_ordered_set() {
-  builder.new("test_name")
+pub fn ordered_set_test() {
+  let myset = builder.new("test_name2")
   |> builder.ordered_set()
-  |> ordered_set.insert(1, 2)
-  |> ordered_set.insert(2, 3)
-  |> ordered_set.lookup(1)
+
+  ordered_set.insert(myset, 1, 2)
+  ordered_set.insert(myset, 2, 3)
+
+  ordered_set.lookup(myset, 1)
   |> should.equal(Ok([#(1, 2)]))
 }

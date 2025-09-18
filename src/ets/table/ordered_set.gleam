@@ -1,6 +1,7 @@
 import ets/table
-import ets/internal/ets_bindings
+import ets/internal/ets_bindings.{cast, anytype}
 import ets/internal/table_type/ordered_set
+import gleam/list
 
 pub type OrderedSet(k, v) =
   ordered_set.OrderedSet(k, v)
@@ -16,7 +17,7 @@ pub fn insert(set: OrderedSet(k, v), key: k, value: v) -> OrderedSet(k, v) {
   ets_bindings.insert(
     set.table
     |> table.name(),
-    #(key, value),
+    #(cast(key), cast(value)),
   )
   set
 }
@@ -28,11 +29,14 @@ pub fn lookup(set: OrderedSet(k, v), key: k) -> Result(List(#(k, v)), Nil) {
     ets_bindings.lookup(
       set.table
       |> table.name(),
-      key,
+      cast(key),
     )
   {
     [] -> Error(Nil)
-    else -> Ok(else)
+    kvs -> Ok(kvs |> list.map(fn (kv) -> #(k, v) {
+      let #(key, value) = kv
+      #(anytype(key), anytype(value))
+    }))
   }
 }
 
@@ -41,7 +45,7 @@ pub fn delete(set: OrderedSet(k, v), key: k) -> OrderedSet(k, v) {
   ets_bindings.delete_key(
     set.table
     |> table.name(),
-    key,
+    cast(key),
   )
   set
 }

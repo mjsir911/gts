@@ -1,5 +1,5 @@
 import ets/table
-import ets/internal/ets_bindings
+import ets/internal/ets_bindings.{cast,anytype}
 import ets/internal/table_type/set
 
 pub type Set(k, v) =
@@ -15,7 +15,7 @@ pub fn insert(set: Set(k, v), key: k, value: v) -> Set(k, v) {
   ets_bindings.insert(
     set.table
     |> table.name(),
-    #(key, value),
+    #(cast(key), cast(value)),
   )
   set
 }
@@ -27,11 +27,11 @@ pub fn lookup(set: Set(k, v), key: k) -> Result(v, Nil) {
     ets_bindings.lookup(
       set.table
       |> table.name(),
-      key,
+      cast(key),
     )
   {
     [] -> Error(Nil)
-    [value, ..] -> Ok(value.1)
+    [#(_, value), ..] -> Ok(anytype(value))
   }
 }
 
@@ -40,7 +40,7 @@ pub fn delete(set: Set(k, v), key: k) -> Set(k, v) {
   ets_bindings.delete_key(
     set.table
     |> table.name(),
-    key,
+    cast(key),
   )
   set
 }
