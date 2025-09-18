@@ -1,7 +1,7 @@
 import gleam/erlang/atom
 import gleam/dynamic
 import gleam/list
-import gleam/option.{None, Option, Some}
+import gleam/option.{type Option, None, Some}
 import ets/internal/table_type/set as set_i
 import ets/table
 import ets/table/set
@@ -9,9 +9,7 @@ import ets/internal/table_type/ordered_set as ordered_set_i
 import ets/table/ordered_set
 import ets/config/write_concurrency
 import ets/config/privacy
-
-external fn new_table(name: atom.Atom, props: List(dynamic.Dynamic)) -> Nil =
-  "ets" "new"
+import ets/internal/ets_bindings
 
 pub type TableBuilder(k, v) {
   TableBuilder(
@@ -76,32 +74,33 @@ fn privacy_prop(prop: privacy.Privacy) -> dynamic.Dynamic {
     privacy.Protected -> "protected"
     privacy.Public -> "public"
   }
-  |> atom.create_from_string
-  |> dynamic.from
+  |> atom.create
+  |> atom.to_dynamic
 }
 
 pub fn write_concurrency_prop(
   prop: write_concurrency.WriteConcurrency,
 ) -> dynamic.Dynamic {
   case prop {
-    write_concurrency.True -> "true"
-    write_concurrency.False -> "false"
-    write_concurrency.Auto -> "auto"
+    write_concurrency.True -> dynamic.bool(True)
+    write_concurrency.False -> dynamic.bool(False)
+    write_concurrency.Auto -> atom.create("auto") |> atom.to_dynamic
   }
-  |> atom.create_from_string
-  |> fn(x) { #(atom.create_from_string("write_concurrency"), x) }
-  |> dynamic.from
+  |> fn(x) { [
+    atom.create("write_concurrency") |> atom.to_dynamic,
+    x
+  ] |> dynamic.array }
 }
 
 pub fn build_table(builder: TableBuilder(k, v), table_type: String) -> atom.Atom {
-  let name = atom.create_from_string(builder.name)
+  let name = atom.create(builder.name)
 
   let props =
     [
-      atom.create_from_string(table_type),
-      atom.create_from_string("named_table"),
+      atom.create(table_type),
+      atom.create("named_table"),
     ]
-    |> list.map(dynamic.from)
+    |> list.map(atom.to_dynamic)
 
   let props = case builder.privacy {
     Some(x) -> [privacy_prop(x), ..props]
@@ -115,8 +114,7 @@ pub fn build_table(builder: TableBuilder(k, v), table_type: String) -> atom.Atom
 
   let props = case builder.read_concurrency {
     Some(x) -> [
-      #(atom.create_from_string("read_concurrency"), x)
-      |> dynamic.from,
+      [atom.create("read_concurrency") |> atom.to_dynamic, dynamic.bool(x)] |> dynamic.array,
       ..props
     ]
     _ -> props
@@ -124,17 +122,15 @@ pub fn build_table(builder: TableBuilder(k, v), table_type: String) -> atom.Atom
 
   let props = case builder.compressed {
     True -> [
-      atom.create_from_string("compressed")
-      |> dynamic.from,
+      atom.create("compressed") |> atom.to_dynamic,
       ..props
     ]
     False -> props
   }
 
-  new_table(
+  ets_bindings.new(
     name,
-    props
-    |> list.map(dynamic.from),
+    props,
   )
   name
 }

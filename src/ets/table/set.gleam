@@ -31,7 +31,7 @@ pub fn lookup(set: Set(k, v), key: k) -> Result(v, Nil) {
     )
   {
     [] -> Error(Nil)
-    [value, ..] -> Ok(value.1)
+    [#(_, value), ..] -> Ok(value)
   }
 }
 

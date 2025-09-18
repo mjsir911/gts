@@ -32,7 +32,7 @@ pub fn lookup(set: OrderedSet(k, v), key: k) -> Result(List(#(k, v)), Nil) {
     )
   {
     [] -> Error(Nil)
-    else -> Ok(else)
+    kvs -> Ok(kvs)
   }
 }
 

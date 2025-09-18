@@ -3,6 +3,7 @@
 import gleam/erlang/atom
 import gleam/erlang/process
 import ets/internal/ets_bindings
+import gleam/dynamic.{type Dynamic}
 
 pub opaque type Table(k, v) {
   Table(name: atom.Atom)
@@ -22,6 +23,6 @@ pub fn drop(table: Table(k, v)) {
 }
 
 /// Give the table to another process.
-pub fn give_away(table: Table(k, v), pid: process.Pid, gift_data: any) -> Nil {
+pub fn give_away(table: Table(k, v), pid: process.Pid, gift_data: Dynamic) -> Nil {
   ets_bindings.give_away(table.name, pid, gift_data)
 }
